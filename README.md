@@ -10,6 +10,12 @@ The development of the GUI had allowed for me to gain an understanding in Object
 ## Youtube Demonstration of the project
 [![Watch the video](https://img.youtube.com/vi/dwKnSbiTHOY/0.jpg)](https://www.youtube.com/embed/dwKnSbiTHOY) 
 
+## Code for the Project
+[Arduino MCU Code](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/Code(Arduino%5CC%2B%2B))
+
+[Matlab Image Processing and GUI code](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/Code%20(MATLAB))
+
+
 ## GUI using MATLAB App designer
 <img src = "https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/Picture2.png" float="centre" width="1080" />
 
