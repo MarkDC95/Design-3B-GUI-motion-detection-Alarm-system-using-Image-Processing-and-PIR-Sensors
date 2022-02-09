@@ -1,5 +1,23 @@
 # Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors
 
+1. [Summary](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#summary-of-project)
+
+2. [Youtube Demonstration of the project](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#youtube-demonstration-of-the-project)
+
+3. [Code for the Project](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#code-for-the-project)
+
+4. [GUI using MATLAB App designer](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#gui-using-matlab-app-designer_)
+
+5. [System Flwochart of Process](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#system-flwochart-of-process)
+
+6. [Circuit Schematic of process](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#circuit-schematic-of-process)
+
+7. [Image Proccessing Methodology](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#image-proccessing-methodology)
+
+8. [Fuzzy Control Model](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#fuzzy-control-model)
+
+9. [Pictures](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#pictures)
+
 ## Summary of Project: 
 This project uses a MATAB based GUI that works in conjunction with a microcontroller to create a simple security system that can detect motion in 4 zones using PIR sensors and image processing. The image processing was accomplished using a webcam to acquire frames for comparison using a background subtraction process, there were several morphological processes that had also been applied to the process and when triggered in conjunction with a PIR sensor it results in an alert system switching ON for that specific zone. The communication was facilitated using Serial communication where both devices can read and write to the serial buffers.
 
