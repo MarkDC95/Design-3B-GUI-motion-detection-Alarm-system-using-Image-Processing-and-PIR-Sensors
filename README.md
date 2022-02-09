@@ -25,6 +25,13 @@ The development of the GUI had allowed for me to gain an understanding in Object
 ## Circuit Schematic of process
 <img src = "https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/Picture3.png" float="centre" width="1080" />
 
+# Image Proccessing Methodology 
+### Life Scale
+<img src = "https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/Picture8.png" float="centre" width="1080" />
+
+### Model Scale
+<img src = "https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/Picture9.png" float="centre" width="1080" />
+
 ## Fuzzy Control Model
 <img src = "https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/Picture5.svg" float="centre" width="1080" />
 
