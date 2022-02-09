@@ -1,1 +1,754 @@
+classdef designProtov3 < matlab.apps.AppBase
 
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure        matlab.ui.Figure
+        ProjectLabel    matlab.ui.control.Label
+        ArmedLamp       matlab.ui.control.Lamp
+        ArmedLampLabel  matlab.ui.control.Label
+        Room4Label      matlab.ui.control.Label
+        Room3Label      matlab.ui.control.Label
+        Room2Label      matlab.ui.control.Label
+        Room1Label      matlab.ui.control.Label
+        Image4          matlab.ui.control.Image
+        Image3          matlab.ui.control.Image
+        Image2          matlab.ui.control.Image
+        Image1          matlab.ui.control.Image
+        Room4Lamp_4     matlab.ui.control.Lamp
+        Room4LampLabel  matlab.ui.control.Label
+        Room3Lamp_3     matlab.ui.control.Lamp
+        Room3LampLabel  matlab.ui.control.Label
+        Room2Lamp_2     matlab.ui.control.Lamp
+        Room2LampLabel  matlab.ui.control.Label
+        Room1Lamp_1     matlab.ui.control.Lamp
+        Room1LampLabel  matlab.ui.control.Label
+        Screen          matlab.ui.control.EditField
+        pb1             matlab.ui.control.Button
+        pb2             matlab.ui.control.Button
+        pb3             matlab.ui.control.Button
+        pbA             matlab.ui.control.Button
+        pb4             matlab.ui.control.Button
+        pb5             matlab.ui.control.Button
+        pb6             matlab.ui.control.Button
+        pbB             matlab.ui.control.Button
+        pb7             matlab.ui.control.Button
+        pb8             matlab.ui.control.Button
+        pb9             matlab.ui.control.Button
+        pbC             matlab.ui.control.Button
+        pbArm           matlab.ui.control.Button
+        pb0             matlab.ui.control.Button
+        pbDisarm        matlab.ui.control.Button
+        pbD             matlab.ui.control.Button
+    end
+
+
+    properties (Access = public) 
+        % global microcontroller instantiation 
+        MCU 
+        %PIR Alarm States
+        PIR_1
+        PIR_2
+        PIR_3
+        PIR_4
+        PIRWord
+        %webcam initilization 
+        cam
+        %Original Background images when alarm is armed;
+        OBim
+        %Original Background GS image
+        OBimgs
+        %original Background segmented images
+        OBim1
+        OBim2
+        OBim3
+        OBim4 
+        %Motion after image processiong Booleans
+        MR1
+        MR2
+        MR3
+        MR4
+        
+        %Image Segmentation variables after image processing
+        Room1
+        Room2
+        Room3
+        Room4
+        %Current instance of image 
+        CurrentImg
+        %default Alarm state
+        Armed_state = false         %Alarm armed state
+
+        thresh
+
+        cstate1 = false
+        cstate2 = false
+        cstate3 = false
+        cstate4 = false
+
+       
+    end
+    
+    methods (Access = public)
+        
+        function [c1, c2, c3, c4, c5] = Alarm_state(app, x1)
+            if (x1 == true) 
+               w = read(app.MCU,4,"char");
+               c1 = w(1);
+               c2 = w(2);
+               c3 = w(3);
+               c4 = w(4);         
+
+            end
+        end
+    end
+    
+    methods (Access = public)
+%         %segment image into 4 sectors
+%         function [imr1, imr2, imr3, imr4] = Segment_image(app,imgB)
+%             imr1 = imgB(:,1:160);
+%             imr2 = imgB(:,161:320);
+%             imr3 = imgB(:,321:480);
+%             imr4 = imgB(:,481:640);
+%             
+%         end
+
+
+        %Image processing Skeleton function 
+        function [room1motion, room2motion, room3motion, room4motion] = ImageProcessingFunc(app, imgSampled)
+            %convert to GS
+            img_gs = rgb2gray(imgSampled);
+            %subtract both GS images
+            img_sub = imsubtract(img_gs,app.OBimgs);
+%             img_adj = imadjust(img_sub);
+%             imshow(img_adj)
+            
+            %filter  subtraction result
+            img_filtered = medfilt2(img_sub);
+
+            %threshold to convert to logical image
+            img_Logic = imbinarize(img_filtered,"global");
+
+            img_opened = imopen(img_Logic, strel('square',10));
+
+            %[app.Room1, app.Room2, app.Room3, app.Room4] = Segment_image(app,img_opened);
+            imr1 = img_opened(:,1:160);
+            imr2 = img_opened(:,161:320);
+            imr3 = img_opened(:,321:480);
+            imr4 = img_opened(:,481:640);
+          
+
+            if sum(imr1(:)) >= app.thresh
+                room1motion = true;
+                app.Image1.ImageSource = imgSampled(:,1:160,:);
+            else
+                room1motion = false;
+                
+            end
+
+            if sum(imr2(:)) >= app.thresh
+                room2motion = true;
+                app.Image2.ImageSource = imgSampled(:,161:320,:);
+            else
+                room2motion = false;
+               
+            end
+
+            if sum(imr3(:)) >= app.thresh
+                room3motion = true;
+                app.Image3.ImageSource = imgSampled(:,321:480,:);
+            else
+                room3motion = false;
+                
+            end
+
+            if sum(imr4(:)) >= app.thresh
+                room4motion = true;
+                app.Image4.ImageSource = imgSampled(:,481:640,:);
+            else
+                room4motion = false;
+              
+            end
+        end
+        
+        %button tone
+        function keytone(app)
+            fs = 4e3;
+            sound(1,fs);
+        end
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            app.MCU = serialport("COM4", 9600, "Timeout",5);      %MCU controller
+            pause(2);
+            app.cam = webcam('C270 HD WEBCAM');
+            %threshold
+            app.thresh = 76800 *0.15;
+        end
+
+        % Button pushed function: pb1
+        function pb1ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'1');
+            end
+
+        end
+
+        % Button pushed function: pb2
+        function pb2ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'2');
+            end
+
+        end
+
+        % Button pushed function: pb3
+        function pb3ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'3');
+            end
+
+        end
+
+        % Button pushed function: pbA
+        function pbAButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'A');
+            end
+
+        end
+
+        % Button pushed function: pb4
+        function pb4ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'4');
+            end
+
+        end
+
+        % Button pushed function: pb5
+        function pb5ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'5');
+            end
+
+        end
+
+        % Button pushed function: pb6
+        function pb6ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'6');
+            end
+
+        end
+
+        % Button pushed function: pbB
+        function pbBButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'B');
+            end
+
+        end
+
+        % Button pushed function: pb7
+        function pb7ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'7');
+            end
+
+        end
+
+        % Button pushed function: pb8
+        function pb8ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'8');
+            end
+
+        end
+
+        % Button pushed function: pb9
+        function pb9ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'9');
+            end
+
+        end
+
+        % Button pushed function: pbC
+        function pbCButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'C');
+            end
+
+        end
+
+        % Button pushed function: pb0
+        function pb0ButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'0');
+            end
+
+        end
+
+        % Button pushed function: pbD
+        function pbDButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) < 4
+            app.Screen.Value = append(app.Screen.Value,'D');
+            end
+
+        end
+
+        % Button pushed function: pbArm
+        function pbArmButtonPushed(app, event)
+            keytone(app);   
+           
+            if length(app.Screen.Value) == 4
+                if app.Screen.Value == "1234"
+                    write(app.MCU,'A\0','int16');
+                    app.Armed_state = true;
+                    
+                    %take background image;
+                    app.OBim = snapshot(app.cam);
+                    app.OBimgs = rgb2gray(app.OBim);
+                    app.Screen.Value = '';
+
+                    pause(5);
+
+                    while (app.Armed_state == true)
+                        app.ArmedLamp.Color = 'green';
+                        %sets condition to break out of while loop
+                        if app.Armed_state == false
+                            continue;
+                        end
+                      
+                        %do camera test
+                        %1.sample the  image from the camera 
+                        app.CurrentImg = snapshot(app.cam);
+                        %2.feed into image processing function
+                        [app.MR1, app.MR2, app.MR3, app.MR4] = ImageProcessingFunc(app, app.CurrentImg);
+                     
+                                    
+                        if app.MR1 == true
+                           %Send the alarm signal to ON 
+                           app.Room1Lamp_1.Color = 'green';
+                           write(app.MCU,'Q\0','int16');
+                        end
+                        
+                        if app.MR2 == true
+                           %Send the alarm signal to ON 
+                           app.Room2Lamp_2.Color = 'green';
+                           write(app.MCU,'W\0','int16');
+                        end
+
+                        if app.MR3 == true
+                            %Send the alarm signal to ON 
+                            app.Room3Lamp_3.Color = 'green';
+                            write(app.MCU,'E\0','int16');
+                        end
+
+                        if app.MR4 == true
+                            %Send the alarm signal to ON 
+                            app.Room4Lamp_4.Color = 'green';                           
+                            write(app.MCU,'R\0','int16');
+                        end
+
+                        %false camera
+                        if app.MR1 == false
+                           %Send the alarm signal to OFF 
+                           write(app.MCU,'H\0','int16');
+                           app.Room1Lamp_1.Color = 'red';
+                        end
+                        
+                        if app.MR2 == false
+                           %Send the alarm signal to OFF 
+                           app.Room2Lamp_2.Color = 'red';
+                           write(app.MCU,'J\0','int16');
+                        end
+
+                        if app.MR3 == false
+                            %Send the alarm signal to OFF 
+                            app.Room3Lamp_3.Color = 'red';
+                            write(app.MCU,'K\0','int16');
+                        end
+
+                        if app.MR4 == false
+                            %Send the alarm signal to OFF 
+                            write(app.MCU,'L\0','int16');
+                            app.Room4Lamp_4.Color = 'red';
+                        end
+                    
+%                         [app.PIR_1, app.PIR_2, app.PIR_3, app.PIR_4] = Alarm_state(app,  app.Armed_state);
+% 
+%                            if app.PIR_1 == "U"
+%                                app.Room1Lamp_1.Color = 'green';
+%                            end
+%                            if app.PIR_1 == "u"
+%                                app.Room1Lamp_1.Color = 'red';
+%                            end
+%             
+%                            if app.PIR_2 == "I"
+%                                app.Room2Lamp_2.Color = 'green';
+%                            end
+%                            if app.PIR_2 == "i"
+%                                app.Room2Lamp_2.Color = 'red';
+%                            end 
+%             
+%                            if app.PIR_3 == "O"
+%                                app.Room3Lamp_3.Color = 'green';
+%                            end
+%                            if app.PIR_3 == "o"
+%                                app.Room3Lamp_3.Color = 'red';
+%                            end 
+%             
+%                            if app.PIR_4 == "P"
+%                                app.Room4Lamp_4.Color = 'green';
+%                            end
+%                            if app.PIR_4 == "p"
+%                                app.Room4Lamp_4.Color = 'red';
+%                            end
+%                            
+
+
+
+                       
+                    end
+
+                end
+                    if  app.Screen.Value ~= "1234"
+                        app.Screen.Value ='';
+                    end
+            end
+        end
+
+        % Button pushed function: pbDisarm
+        function pbDisarmButtonPushed(app, event)
+            keytone(app);
+            if length(app.Screen.Value) == 4
+                if app.Screen.Value == "1234"
+                    write(app.MCU,'a\0','int16');
+                     app.Armed_state = false;
+                     app.ArmedLamp.Color = 'red';
+                      app.Image1.ImageSource = '';
+                      app.Image2.ImageSource = '';
+                      app.Image3.ImageSource = '';
+                      app.Image4.ImageSource = '';
+
+                end
+            app.Screen.Value = '';
+            end
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 564 485];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create pbD
+            app.pbD = uibutton(app.UIFigure, 'push');
+            app.pbD.ButtonPushedFcn = createCallbackFcn(app, @pbDButtonPushed, true);
+            app.pbD.Tag = 'pbd';
+            app.pbD.FontSize = 18;
+            app.pbD.FontWeight = 'bold';
+            app.pbD.Position = [169 168 45 43];
+            app.pbD.Text = 'D';
+
+            % Create pbDisarm
+            app.pbDisarm = uibutton(app.UIFigure, 'push');
+            app.pbDisarm.ButtonPushedFcn = createCallbackFcn(app, @pbDisarmButtonPushed, true);
+            app.pbDisarm.Tag = 'pbdarm';
+            app.pbDisarm.FontSize = 6;
+            app.pbDisarm.FontWeight = 'bold';
+            app.pbDisarm.Position = [124 168 45 43];
+            app.pbDisarm.Text = 'DISARM';
+
+            % Create pb0
+            app.pb0 = uibutton(app.UIFigure, 'push');
+            app.pb0.ButtonPushedFcn = createCallbackFcn(app, @pb0ButtonPushed, true);
+            app.pb0.Tag = 'pb0';
+            app.pb0.FontSize = 18;
+            app.pb0.FontWeight = 'bold';
+            app.pb0.Position = [79 168 45 43];
+            app.pb0.Text = '0';
+
+            % Create pbArm
+            app.pbArm = uibutton(app.UIFigure, 'push');
+            app.pbArm.ButtonPushedFcn = createCallbackFcn(app, @pbArmButtonPushed, true);
+            app.pbArm.Tag = 'pbarm';
+            app.pbArm.FontSize = 6;
+            app.pbArm.FontWeight = 'bold';
+            app.pbArm.Position = [35 168 45 43];
+            app.pbArm.Text = 'ARM';
+
+            % Create pbC
+            app.pbC = uibutton(app.UIFigure, 'push');
+            app.pbC.ButtonPushedFcn = createCallbackFcn(app, @pbCButtonPushed, true);
+            app.pbC.Tag = 'pbc';
+            app.pbC.FontSize = 18;
+            app.pbC.FontWeight = 'bold';
+            app.pbC.Position = [168 210 45 43];
+            app.pbC.Text = 'C';
+
+            % Create pb9
+            app.pb9 = uibutton(app.UIFigure, 'push');
+            app.pb9.ButtonPushedFcn = createCallbackFcn(app, @pb9ButtonPushed, true);
+            app.pb9.Tag = 'pb9';
+            app.pb9.FontSize = 18;
+            app.pb9.FontWeight = 'bold';
+            app.pb9.Position = [123 211 45 43];
+            app.pb9.Text = '9';
+
+            % Create pb8
+            app.pb8 = uibutton(app.UIFigure, 'push');
+            app.pb8.ButtonPushedFcn = createCallbackFcn(app, @pb8ButtonPushed, true);
+            app.pb8.Tag = 'pb8';
+            app.pb8.FontSize = 18;
+            app.pb8.FontWeight = 'bold';
+            app.pb8.Position = [79 211 45 43];
+            app.pb8.Text = '8';
+
+            % Create pb7
+            app.pb7 = uibutton(app.UIFigure, 'push');
+            app.pb7.ButtonPushedFcn = createCallbackFcn(app, @pb7ButtonPushed, true);
+            app.pb7.Tag = 'pb7';
+            app.pb7.FontSize = 18;
+            app.pb7.FontWeight = 'bold';
+            app.pb7.Position = [35 211 45 43];
+            app.pb7.Text = '7';
+
+            % Create pbB
+            app.pbB = uibutton(app.UIFigure, 'push');
+            app.pbB.ButtonPushedFcn = createCallbackFcn(app, @pbBButtonPushed, true);
+            app.pbB.Tag = 'pbb';
+            app.pbB.FontSize = 18;
+            app.pbB.FontWeight = 'bold';
+            app.pbB.Position = [168 252 45 43];
+            app.pbB.Text = 'B';
+
+            % Create pb6
+            app.pb6 = uibutton(app.UIFigure, 'push');
+            app.pb6.ButtonPushedFcn = createCallbackFcn(app, @pb6ButtonPushed, true);
+            app.pb6.Tag = 'pb6';
+            app.pb6.FontSize = 18;
+            app.pb6.FontWeight = 'bold';
+            app.pb6.Position = [123 253 45 43];
+            app.pb6.Text = '6';
+
+            % Create pb5
+            app.pb5 = uibutton(app.UIFigure, 'push');
+            app.pb5.ButtonPushedFcn = createCallbackFcn(app, @pb5ButtonPushed, true);
+            app.pb5.Tag = 'pb5';
+            app.pb5.FontSize = 18;
+            app.pb5.FontWeight = 'bold';
+            app.pb5.Position = [79 253 45 43];
+            app.pb5.Text = '5';
+
+            % Create pb4
+            app.pb4 = uibutton(app.UIFigure, 'push');
+            app.pb4.ButtonPushedFcn = createCallbackFcn(app, @pb4ButtonPushed, true);
+            app.pb4.Tag = 'pb4';
+            app.pb4.FontSize = 18;
+            app.pb4.FontWeight = 'bold';
+            app.pb4.Position = [35 253 45 43];
+            app.pb4.Text = '4';
+
+            % Create pbA
+            app.pbA = uibutton(app.UIFigure, 'push');
+            app.pbA.ButtonPushedFcn = createCallbackFcn(app, @pbAButtonPushed, true);
+            app.pbA.Tag = 'pba';
+            app.pbA.FontSize = 18;
+            app.pbA.FontWeight = 'bold';
+            app.pbA.Position = [168 295 45 43];
+            app.pbA.Text = 'A';
+
+            % Create pb3
+            app.pb3 = uibutton(app.UIFigure, 'push');
+            app.pb3.ButtonPushedFcn = createCallbackFcn(app, @pb3ButtonPushed, true);
+            app.pb3.Tag = 'pb3';
+            app.pb3.FontSize = 18;
+            app.pb3.FontWeight = 'bold';
+            app.pb3.Position = [123 295 45 43];
+            app.pb3.Text = '3';
+
+            % Create pb2
+            app.pb2 = uibutton(app.UIFigure, 'push');
+            app.pb2.ButtonPushedFcn = createCallbackFcn(app, @pb2ButtonPushed, true);
+            app.pb2.Tag = 'pb2';
+            app.pb2.FontSize = 18;
+            app.pb2.FontWeight = 'bold';
+            app.pb2.Position = [79 295 45 43];
+            app.pb2.Text = '2';
+
+            % Create pb1
+            app.pb1 = uibutton(app.UIFigure, 'push');
+            app.pb1.ButtonPushedFcn = createCallbackFcn(app, @pb1ButtonPushed, true);
+            app.pb1.Tag = 'pb1';
+            app.pb1.FontSize = 18;
+            app.pb1.FontWeight = 'bold';
+            app.pb1.Position = [35 295 45 43];
+            app.pb1.Text = '1';
+
+            % Create Screen
+            app.Screen = uieditfield(app.UIFigure, 'text');
+            app.Screen.Tag = 'screen';
+            app.Screen.HorizontalAlignment = 'center';
+            app.Screen.FontName = 'Consolas';
+            app.Screen.FontSize = 18;
+            app.Screen.FontWeight = 'bold';
+            app.Screen.Placeholder = 'Enter Code';
+            app.Screen.Position = [35 352 179 42];
+
+            % Create Room1LampLabel
+            app.Room1LampLabel = uilabel(app.UIFigure);
+            app.Room1LampLabel.HorizontalAlignment = 'right';
+            app.Room1LampLabel.Position = [37 423 44 22];
+            app.Room1LampLabel.Text = 'Room1';
+
+            % Create Room1Lamp_1
+            app.Room1Lamp_1 = uilamp(app.UIFigure);
+            app.Room1Lamp_1.Position = [100 423 20 20];
+            app.Room1Lamp_1.Color = [1 0 0];
+
+            % Create Room2LampLabel
+            app.Room2LampLabel = uilabel(app.UIFigure);
+            app.Room2LampLabel.HorizontalAlignment = 'right';
+            app.Room2LampLabel.Position = [140 422 44 22];
+            app.Room2LampLabel.Text = 'Room2';
+
+            % Create Room2Lamp_2
+            app.Room2Lamp_2 = uilamp(app.UIFigure);
+            app.Room2Lamp_2.Position = [203 422 20 20];
+            app.Room2Lamp_2.Color = [1 0 0];
+
+            % Create Room3LampLabel
+            app.Room3LampLabel = uilabel(app.UIFigure);
+            app.Room3LampLabel.HorizontalAlignment = 'right';
+            app.Room3LampLabel.Position = [249 421 44 22];
+            app.Room3LampLabel.Text = 'Room3';
+
+            % Create Room3Lamp_3
+            app.Room3Lamp_3 = uilamp(app.UIFigure);
+            app.Room3Lamp_3.Position = [312 421 20 20];
+            app.Room3Lamp_3.Color = [1 0 0];
+
+            % Create Room4LampLabel
+            app.Room4LampLabel = uilabel(app.UIFigure);
+            app.Room4LampLabel.HorizontalAlignment = 'right';
+            app.Room4LampLabel.Position = [346 420 44 22];
+            app.Room4LampLabel.Text = 'Room4';
+
+            % Create Room4Lamp_4
+            app.Room4Lamp_4 = uilamp(app.UIFigure);
+            app.Room4Lamp_4.Position = [409 420 20 20];
+            app.Room4Lamp_4.Color = [1 0 0];
+
+            % Create Image1
+            app.Image1 = uiimage(app.UIFigure);
+            app.Image1.Position = [259 266 100 100];
+
+            % Create Image2
+            app.Image2 = uiimage(app.UIFigure);
+            app.Image2.Position = [435 266 100 100];
+
+            % Create Image3
+            app.Image3 = uiimage(app.UIFigure);
+            app.Image3.Position = [259 112 100 100];
+
+            % Create Image4
+            app.Image4 = uiimage(app.UIFigure);
+            app.Image4.Position = [435 112 100 100];
+
+            % Create Room1Label
+            app.Room1Label = uilabel(app.UIFigure);
+            app.Room1Label.Position = [284 372 48 22];
+            app.Room1Label.Text = 'Room1 ';
+
+            % Create Room2Label
+            app.Room2Label = uilabel(app.UIFigure);
+            app.Room2Label.Position = [467 372 48 22];
+            app.Room2Label.Text = 'Room 2';
+
+            % Create Room3Label
+            app.Room3Label = uilabel(app.UIFigure);
+            app.Room3Label.Position = [289 220 48 22];
+            app.Room3Label.Text = 'Room 3';
+
+            % Create Room4Label
+            app.Room4Label = uilabel(app.UIFigure);
+            app.Room4Label.Position = [459 220 51 22];
+            app.Room4Label.Text = 'Room 4 ';
+
+            % Create ArmedLampLabel
+            app.ArmedLampLabel = uilabel(app.UIFigure);
+            app.ArmedLampLabel.HorizontalAlignment = 'right';
+            app.ArmedLampLabel.Position = [35 111 41 22];
+            app.ArmedLampLabel.Text = 'Armed';
+
+            % Create ArmedLamp
+            app.ArmedLamp = uilamp(app.UIFigure);
+            app.ArmedLamp.Position = [89 113 22 22];
+            app.ArmedLamp.Color = [1 0 0];
+
+            % Create ProjectLabel
+            app.ProjectLabel = uilabel(app.UIFigure);
+            app.ProjectLabel.FontWeight = 'bold';
+            app.ProjectLabel.Position = [35 25 506 22];
+            app.ProjectLabel.Text = 'Chinnasamy MD 21905492 - Motion detection using PIR Sensors and Image Processors';
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = designProtov3
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
