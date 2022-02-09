@@ -1,0 +1,313 @@
+//Define light
+#define Light_1   52
+#define Light_2   50
+#define Light_3   48
+#define Light_4   46
+
+#define buzzer    9
+
+//Define PIR
+#define PIR_1     10
+#define PIR_2     11
+#define PIR_3     12
+#define PIR_4     13
+
+#define Test_L1   31
+#define Test_L2   33
+#define Test_L3   35
+#define Test_L4   37
+#define Test_L5   39
+
+bool Armed = false;
+const int flashSpeed = 500;
+
+bool PIR_A1 = false;
+bool PIR_A2 = false;
+bool PIR_A3 = false;
+bool PIR_A4 = false;
+
+int S1 = 0;
+int S2 = 0;
+int S3 = 0;
+int S4 = 0;
+
+int BuzzState = 0;
+int inbyte = 0;
+
+bool PIR1_State = false;
+bool PIR2_State = false;
+bool PIR3_State = false;
+bool PIR4_State = false;
+
+boolean roomL1_state = false;
+boolean roomL2_state = false;
+boolean roomL3_state = false;
+boolean roomL4_state = false;
+
+unsigned long tmp_count1 = 0;
+unsigned long tmp_count2 = 0;
+unsigned long tmp_count3 = 0;
+unsigned long tmp_count4 = 0;
+
+int PIRS_1 = 0;
+int PIRS_2 = 0;
+int PIRS_3 = 0;
+int PIRS_4 = 0;
+
+char strPIR[5] = "zxcv";
+char strTrueStatePIR[5] = "uiop";
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+
+  //Light mode declaration
+  pinMode(Light_1, OUTPUT);
+  pinMode(Light_2, OUTPUT);
+  pinMode(Light_3, OUTPUT);
+  pinMode(Light_4, OUTPUT);
+  // PIR warm up reading
+  digitalRead(PIR_1);
+  digitalRead(PIR_2);
+  digitalRead(PIR_3);
+  digitalRead(PIR_4);
+
+  pinMode(Test_L1, OUTPUT);
+  pinMode(Test_L2, OUTPUT);
+  pinMode(Test_L3, OUTPUT);
+  pinMode(Test_L4, OUTPUT);
+  pinMode(Test_L5, OUTPUT);
+
+  
+  digitalWrite(Test_L1, 1);
+  digitalWrite(Test_L2, 1);
+  digitalWrite(Test_L3, 1);
+  digitalWrite(Test_L4, 1);
+  digitalWrite(Test_L5, 1);
+  delay(6000);
+  digitalWrite(Test_L1, 0);
+  digitalWrite(Test_L2, 0);
+  digitalWrite(Test_L3, 0);
+  digitalWrite(Test_L4, 0);
+  digitalWrite(Test_L5, 0);
+
+}
+
+void loop() {
+  if (Serial.available() > 0)
+  {
+    inbyte = Serial.read();
+  }
+  //Send state of PIR
+  Serial.print(strTrueStatePIR);
+
+  if (inbyte == 'A') //system is armed
+  {
+    Armed = true;
+  }
+
+  if (Armed == true)
+  {
+    PIR_A1 = true;
+    PIR_A2 = true;
+    PIR_A3 = true;
+    PIR_A4 = true;
+    ///////////////////////////////////////////////
+    //true PIR states
+    //pir1 true state
+    if ((digitalRead(PIR_1) == 1))
+    {
+      strTrueStatePIR[0] = 'U';
+      digitalWrite(Test_L1, 1);
+    }
+    if ((digitalRead(PIR_1) == 0))
+    {
+      strTrueStatePIR[0] = 'u';
+      digitalWrite(Test_L1,0);
+    }
+
+    //pir2 true state
+    if ((digitalRead(PIR_2) == 1))
+    {
+      strTrueStatePIR[1] = 'I';
+      digitalWrite(Test_L2, 1);
+    }
+    if ((digitalRead(PIR_2) == 0))
+    {
+      strTrueStatePIR[1] = 'i';
+      digitalWrite(Test_L2, 0);
+    }
+
+    //pir3 true state
+    if ((digitalRead(PIR_3) == 1))
+    {
+      strTrueStatePIR[2] = 'O';
+      digitalWrite(Test_L3, 1);
+    }
+    if ((digitalRead(PIR_3) == 0))
+    {
+      strTrueStatePIR[2] = 'o';
+      digitalWrite(Test_L3, 0);
+    }
+
+    //pir4 true state
+    if ((digitalRead(PIR_4) == 1))
+    {
+      strTrueStatePIR[3] = 'P';
+      digitalWrite(Test_L4, 1);
+    }
+    if ((digitalRead(PIR_4) == 0))
+    {
+      strTrueStatePIR[3] = 'p';
+      digitalWrite(Test_L4, 0);
+    }
+
+  }
+
+
+//  // Send PIR state if armed and triggered
+//  if ((PIR_A1 == true) && (digitalRead(PIR_1) == 1))
+//  {
+//    digitalWrite(Test_L2, 1);
+//    //set PIR1 Tx data
+//    strPIR[0] = 'Z';
+//    // if PIR1 cam test fails
+//    if (inbyte == 'H')
+//    {
+//      //set PIR state back to off or small letter
+//      strPIR[0] = 'z';
+//    }
+//
+//  }
+//
+//  if ((PIR_A2 == true) && (digitalRead(PIR_2) == 1))
+//  {
+//    strPIR[1] = 'X';
+//    if (inbyte == 'J')
+//    {
+//      strPIR[1] = 'x';
+//    }
+//
+//  }
+//
+//  if ((PIR_A3 == true) && (digitalRead(PIR_3) == 1))
+//  {
+//    strPIR[2] = 'C';
+//    if (inbyte == 'K')
+//    {
+//      strPIR[2] = 'c';
+//    }
+//  }
+//
+//  if ((PIR_A4 == true) && (digitalRead(PIR_4) == 1))
+//  {
+//    strPIR[3] = 'V';
+//    if (inbyte == 'L')
+//    {
+//      strPIR[3] = 'v';
+//    }
+//  }
+//
+//  if (Armed == true)
+//  {
+//    //print 'zxcv'
+//    Serial.write(strPIR);
+//    
+//  }
+
+
+  //alarms triggered sent from matlab
+  if (inbyte == 'Q')
+  {
+    S1 = 1;
+  }
+
+  if (inbyte == 'W')
+  {
+    S2 = 1;
+  }
+
+  if (inbyte == 'E')
+  {
+    S3 = 1;
+  }
+
+  if (inbyte == 'R')
+  {
+    S4 = 1;
+  }
+
+  //LIGHT FUNCTION
+  if (((millis() - tmp_count1) >= flashSpeed) && (S1 == 1))
+  {
+    digitalWrite(Light_1, !roomL1_state);
+    roomL1_state = !roomL1_state;
+    tmp_count1 = millis();
+  }
+
+  if (((millis() - tmp_count2) >= flashSpeed) && (S2 == 1))
+  {
+    digitalWrite(Light_2, !roomL2_state);
+    roomL2_state = !roomL2_state;
+    tmp_count2 = millis();
+  }
+
+  if (((millis() - tmp_count3) >= flashSpeed) && (S3 == 1))
+  {
+    digitalWrite(Light_3, !roomL3_state);
+    roomL3_state = !roomL3_state;
+    tmp_count3 = millis();
+  }
+
+  if (((millis() - tmp_count4) >= flashSpeed) && (S4 == 1))
+  {
+    digitalWrite(Light_4, !roomL4_state);
+    roomL4_state = !roomL4_state;
+    tmp_count4 = millis();
+  }
+
+  if (((S1 == 1) || (S2 == 1) || (S3 == 1) || (S4 == 1)) && (BuzzState == 0))
+  {
+    tone(buzzer, 1000);
+    BuzzState = 1;
+  }
+
+
+  if (inbyte == 'a')
+  {
+    // reset or diable armed state
+    Armed  = false;
+    PIR_A1 = false;
+    PIR_A2 = false;
+    PIR_A3 = false;
+    PIR_A4 = false;
+
+    //turn buzzer off
+    noTone(buzzer);
+    BuzzState = 0;
+
+    //switch all lights off
+    digitalWrite(Light_1, LOW);
+    digitalWrite(Light_2, LOW);
+    digitalWrite(Light_3, LOW);
+    digitalWrite(Light_4, LOW);
+
+    //reset alarm trigger off
+    S1 = 0 ;
+    S2 = 0 ;
+    S3 = 0 ;
+    S4 = 0 ;
+
+    //Reset for light flashing variables
+    roomL1_state = false;
+    roomL2_state = false;
+    roomL3_state = false;
+    roomL4_state = false;
+
+    tmp_count1 = 0;
+    tmp_count2 = 0;
+    tmp_count3 = 0;
+    tmp_count4 = 0;
+  }
+
+}
