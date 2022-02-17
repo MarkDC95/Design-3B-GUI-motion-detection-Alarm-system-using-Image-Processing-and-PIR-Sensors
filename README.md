@@ -8,7 +8,7 @@
 
 4. [GUI using MATLAB App designer](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#gui-using-matlab-app-designer_)
 
-5. [System Flwochart of Process](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#system-flwochart-of-process)
+5. [System Flowchart of Process](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#system-flwochart-of-process)
 
 6. [Circuit Schematic of process](https://github.com/MarkDC95/Design-3B-GUI-motion-detection-Alarm-system-using-Image-Processing-and-PIR-Sensors/blob/main/README.md#circuit-schematic-of-process)
 
